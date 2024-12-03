@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="./src/img/image.jpg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gráfica de Hipótesis</title>
+    <link rel="stylesheet" href="./src/css/grafica.css">
+    <link rel="stylesheet" href="../e-commerce/graficae.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <a href="./index.html" class="back-link">
+        <h5>&#8592; Atrás</h5>
+    </a>
+
+    <h1>Proyección de Ganancias</h1>
+    <div class="inputs">
+        <div>
+            <label for="maxPeople">Máx. Personas:</label>
+            <input type="number" id="maxPeople" placeholder="Ejemplo: 50">
+        </div>
+        <div>
+            <label for="minPeople">Mín. Personas:</label>
+            <input type="number" id="minPeople" placeholder="Ejemplo: 30">
+        </div>
+        <div>
+            <label for="maxEarnings">Máx. Ganancias:</label>
+            <input type="number" id="maxEarnings" placeholder="Ejemplo: 750">
+        </div>
+        <div>
+            <label for="minEarnings">Mín. Ganancias:</label>
+            <input type="number" id="minEarnings" placeholder="Ejemplo: 450">
+        </div>
+        <div>
+            <label for="specificClients">Clientes específicos:</label>
+            <input type="number" id="specificClients" placeholder="Ejemplo: 42">
+        </div>
+    </div>
+    <button onclick="generateChart()">Generar Gráfica</button>
+
+    <canvas id="predictionChart"></canvas>
+
+    <div id="results" class="results-container"></div>
+
+    <script>
+        function generateChart() {
+            const maxPeople = parseInt(document.getElementById('maxPeople').value);
+            const minPeople = parseInt(document.getElementById('minPeople').value);
+            const maxEarnings = parseInt(document.getElementById('maxEarnings').value);
+            const minEarnings = parseInt(document.getElementById('minEarnings').value);
+            const specificClients = parseInt(document.getElementById('specificClients').value);
+
+            if (
+                isNaN(maxPeople) || isNaN(minPeople) ||
+                isNaN(maxEarnings) || isNaN(minEarnings) ||
+                isNaN(specificClients)
+            ) {
+                alert("Por favor, llena todos los campos con valores numéricos.");
+                return;
+            }
+
+            // Cálculo de la pendiente y la intersección
+            const slope = (maxEarnings - minEarnings) / (maxPeople - minPeople);
+            const intercept = minEarnings - slope * minPeople;
+
+            // Generar secuencia de datos
+            const people = [];
+            const earnings = [];
+            for (let i = minPeople; i <= maxPeople; i++) {
+                people.push(i);
+                earnings.push(slope * i + intercept);
+            }
+
+            // Calcular ingresos y ganancias para clientes específicos
+            const specificIncome = slope * specificClients + intercept;
+            const specificProfit = specificIncome * 0.4;
+
+            // Mostrar resultados
+            document.getElementById('results').innerHTML = `
+                <p><strong>Pendiente (m):</strong> ${slope.toFixed(2)}</p>
+                <p><strong>Intersección (b):</strong> ${intercept.toFixed(2)}</p>
+                <p><strong>Ingreso para ${specificClients} clientes:</strong> S/ ${specificIncome.toFixed(2)}</p>
+                <p><strong>Ganancia (40% del ingreso):</strong> S/ ${specificProfit.toFixed(2)}</p>
+            `;
+
+            // Generar gráfica
+            const ctx = document.getElementById('predictionChart').getContext('2d');
+            if (window.myChart) {
+                window.myChart.destroy();
+            }
+            window.myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: people,
+                    datasets: [{
+                        label: 'Relación Personas-Ganancias',
+                        data: earnings,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderWidth: 2,
+                        fill: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Número de Personas'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Ganancias (S/)'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
